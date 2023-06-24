@@ -136,11 +136,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func collisionBetween(ball: SKNode, object: SKNode) {
         if object.name == "good" {
             score += 1
-            ball.removeFromParent()
+            destroy(ball: ball)
         } else if object.name == "bad" {
             score -= 1
-            ball.removeFromParent()
+            destroy(ball: ball)
         }
+    }
+
+    private func destroy(ball: SKNode) {
+        if let fireParticles = SKEmitterNode(fileNamed: "FireParticles") {
+            fireParticles.position = ball.position
+            addChild(fireParticles)
+        }
+
+        ball.removeFromParent()
     }
 
     func didBegin(_ contact: SKPhysicsContact) {
