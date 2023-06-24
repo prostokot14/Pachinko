@@ -57,9 +57,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
-            let location = touch.location(in: self)
-            let objects = nodes(at: location)
+            var location = touch.location(in: self)
 
+            if location.y < 600 {
+                location.y = CGFloat(Int.random(in: 600...700))
+            }
+
+            let objects = nodes(at: location)
             if objects.contains(editLabel) {
                 isEditingMode.toggle()
             } else {
