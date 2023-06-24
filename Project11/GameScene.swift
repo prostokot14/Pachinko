@@ -8,10 +8,12 @@
 import SpriteKit
 
 final class GameScene: SKScene, SKPhysicsContactDelegate {
+    // MARK: - Visual Components
     private var scorelabel: SKLabelNode!
     private var editLabel: SKLabelNode!
     private var ballCountLabel: SKLabelNode!
 
+    // MARK: - Private Properties
     private var score = 0 {
         didSet {
             scorelabel.text = "Score: \(score)"
@@ -32,6 +34,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private let ballColors = ["ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballRed", "ballYellow"]
 
+    // MARK: - SKScene
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "background.jpg")
         background.position = CGPoint(x: 512, y: 384)
@@ -87,6 +90,20 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    // MARK: - Public methods
+    func didBegin(_ contact: SKPhysicsContact) {
+        guard let nodeA = contact.bodyA.node, let nodeB = contact.bodyB.node else {
+            return
+        }
+
+        if nodeA.name == "ball" {
+            collisionBetween(ball: nodeA, object: nodeB)
+        } else if nodeB.name == "ball" {
+            collisionBetween(ball: nodeB, object: nodeA)
+        }
+    }
+
+    // MARK: - Private Methods
     private func makeBall(at position: CGPoint) {
         let ball = SKSpriteNode(imageNamed: ballColors.randomElement() ?? "ballRed")
         ball.name = "ball"
@@ -188,17 +205,5 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
 
         ball.removeFromParent()
-    }
-
-    func didBegin(_ contact: SKPhysicsContact) {
-        guard let nodeA = contact.bodyA.node, let nodeB = contact.bodyB.node else {
-            return
-        }
-
-        if nodeA.name == "ball" {
-            collisionBetween(ball: nodeA, object: nodeB)
-        } else if nodeB.name == "ball" {
-            collisionBetween(ball: nodeB, object: nodeA)
-        }
     }
 }
