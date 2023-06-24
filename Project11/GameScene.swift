@@ -10,6 +10,7 @@ import SpriteKit
 final class GameScene: SKScene, SKPhysicsContactDelegate {
     private var scorelabel: SKLabelNode!
     private var editLabel: SKLabelNode!
+    private var ballCountLabel: SKLabelNode!
 
     private var score = 0 {
         didSet {
@@ -23,7 +24,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
-    private let balls = ["ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballRed", "ballYellow"]
+    private var ballsCount = 5 {
+        didSet {
+            ballCountLabel.text = "Balls left: \(ballsCount)"
+        }
+    }
+
+    private let ballColors = ["ballBlue", "ballCyan", "ballGreen", "ballGrey", "ballPurple", "ballRed", "ballYellow"]
 
     override func didMove(to view: SKView) {
         let background = SKSpriteNode(imageNamed: "background.jpg")
@@ -51,6 +58,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
 
         makeEditLabel(at: CGPoint(x: 80, y: 700))
         makeScoreLabel(at: CGPoint(x: 980, y: 700))
+        makeBallCountLabel(at: CGPoint(x: 780, y: 700))
 
         scene?.scaleMode = .aspectFit
     }
@@ -59,10 +67,6 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         if let touch = touches.first {
             var location = touch.location(in: self)
 
-            if location.y < 600 {
-                location.y = CGFloat(Int.random(in: 600...700))
-            }
-
             let objects = nodes(at: location)
             if objects.contains(editLabel) {
                 isEditingMode.toggle()
@@ -70,14 +74,21 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
                 if isEditingMode {
                     makeBox(at: location)
                 } else {
-                    makeBall(at: location)
+                    if location.y < 600 {
+                        location.y = CGFloat(Int.random(in: 600...700))
+                    }
+
+                    if ballsCount > 0 {
+                        makeBall(at: location)
+                        ballsCount -= 1
+                    }
                 }
             }
         }
     }
 
     private func makeBall(at position: CGPoint) {
-        let ball = SKSpriteNode(imageNamed: balls.randomElement() ?? "ballRed")
+        let ball = SKSpriteNode(imageNamed: ballColors.randomElement() ?? "ballRed")
         ball.name = "ball"
         let size = CGSize(width: 64, height: 64)
         ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
@@ -93,6 +104,7 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func makeBox(at position: CGPoint) {
         let box = SKSpriteNode(color: UIColor(red: CGFloat.random(in: 0...1), green: CGFloat.random(in: 0...1), blue: CGFloat.random(in: 0...1), alpha: 1), size: CGSize(width: Int.random(in: 16...128), height: 16))
         box.zRotation = CGFloat.random(in: 0...3)
+        box.name = "box"
         box.position = position
         box.physicsBody = SKPhysicsBody(rectangleOf: box.size)
         box.physicsBody?.isDynamic = false
@@ -112,6 +124,14 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
         editLabel.text = "Edit"
         editLabel.position = position
         addChild(editLabel)
+    }
+
+    private func makeBallCountLabel(at position: CGPoint) {
+        ballCountLabel = SKLabelNode(fontNamed: "Chalkduster")
+        ballCountLabel.text = "Balls left: 5"
+        ballCountLabel.horizontalAlignmentMode = .right
+        ballCountLabel.position = position
+        addChild(ballCountLabel)
     }
 
     private func makeBouncer(at position: CGPoint) {
@@ -151,10 +171,13 @@ final class GameScene: SKScene, SKPhysicsContactDelegate {
     private func collisionBetween(ball: SKNode, object: SKNode) {
         if object.name == "good" {
             score += 1
+            ballsCount += 1
             destroy(ball: ball)
         } else if object.name == "bad" {
             score -= 1
             destroy(ball: ball)
+        } else if object.name == "box" {
+            object.removeFromParent()
         }
     }
 
